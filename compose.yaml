@@ -1,0 +1,17 @@
+services:
+  sqlserver:
+    container_name: demo-sqlserver
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "per134-900+"
+      MSSQL_PID: "Express"
+    ports:
+      - "1433:1433"
+
+  adminer:
+    container_name: demo-adminer
+    image: adminer
+    restart: unless-stopped
+    ports:
+      - "5050:8080"
