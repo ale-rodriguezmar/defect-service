@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -46,7 +47,7 @@ public class Report extends Auditable {
     private Area responsible;
 
     @OneToMany(mappedBy = "report", cascade = CascadeType.ALL)
-    private List<Evidence> evidence;
+    private List<Evidence> evidence = new ArrayList<>();
 
     private LocalDateTime createDate;
 

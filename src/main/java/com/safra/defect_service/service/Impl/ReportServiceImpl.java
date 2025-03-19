@@ -2,16 +2,21 @@ package com.safra.defect_service.service.Impl;
 
 import com.safra.defect_service.dto.ReportDTO;
 import com.safra.defect_service.dto.ReportInfoDTO;
+import com.safra.defect_service.entity.Evidence;
 import com.safra.defect_service.entity.Report;
 import com.safra.defect_service.entity.Solution;
 import com.safra.defect_service.entity.enums.ReportStatus;
 import com.safra.defect_service.repository.*;
+import com.safra.defect_service.service.FileService;
 import com.safra.defect_service.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,13 +39,15 @@ public class ReportServiceImpl implements ReportService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private FileService fileService;
     @Override
     public List<Report> findAll() {
         return reportRepository.findAll();
     }
 
     @Override
-    public Report save(Report report, Long areaId, Long itemId, Long causeId, Long userId, Long responsibleId) {
+    public Report save(Report report, Long areaId, Long itemId, Long causeId, Long userId, Long responsibleId,List<MultipartFile> files) throws IOException {
 
         report.setArea(areaRepository.findById(areaId).orElseThrow());
         report.setItem(itemId != null ? itemRepository.findById(itemId).orElse(null) : null);
@@ -50,6 +57,17 @@ public class ReportServiceImpl implements ReportService {
         report.setEvidence(null);
         report.setStatus(ReportStatus.PENDING);
         report.setCreateDate(LocalDateTime.now(ZoneId.of("America/Bogota")));
+        // insert evidence
+        var listEvidenceUrl = fileService.uploadFiles(files);
+        Evidence evidence = new Evidence();
+        evidence.setUrls(listEvidenceUrl);
+        evidence.setReport(report);
+        if(report.getEvidence() == null){
+            report.setEvidence(List.of(evidence));
+        } else{
+            report.getEvidence().add(evidence);
+        }
+
         return reportRepository.save(report);
     }
 

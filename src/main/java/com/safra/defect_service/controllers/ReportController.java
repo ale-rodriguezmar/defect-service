@@ -35,10 +35,13 @@ public class ReportController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<ReportDTO> save(@RequestBody ReportDTO reportDTO) {
-
+    public ResponseEntity<ReportDTO> save(
+            @RequestPart("reportDTO") ReportDTO reportDTO,
+            @RequestParam("files") List<MultipartFile> files) throws IOException {
 
         System.out.println(reportDTO.toString());
+        System.out.println("Cantidad de archivos recibidos: " + files.size());
+
         return ResponseEntity.ok(reportService
                 .save(
                         reportDTO.toEntity(),
@@ -46,7 +49,8 @@ public class ReportController {
                         reportDTO.getItemId(),
                         reportDTO.getCauseId(),
                         reportDTO.getUserId(),
-                        reportDTO.getResponsibleIdArea())
+                        reportDTO.getResponsibleIdArea(),
+                        files)
                 .toDto());
     }
 
@@ -63,8 +67,6 @@ public class ReportController {
 
     @PostMapping("uploadFiles")
     public ResponseEntity<List<String>> uploadFiles(@RequestParam("files") List<MultipartFile> files) throws IOException {
-
-        System.out.println(files.size());
         return ResponseEntity.ok(fileService.uploadFiles(files));
     }
 }

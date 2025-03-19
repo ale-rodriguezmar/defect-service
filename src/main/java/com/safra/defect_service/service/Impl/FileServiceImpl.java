@@ -35,7 +35,9 @@ public class FileServiceImpl implements FileService {
                 String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
                 Path filePath = batchDir.resolve(fileName);
                 Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-                routesFile.add(filePath.toString());
+
+                Path relativePath = rootPath.relativize(filePath);
+                routesFile.add(relativePath.toString());
             }
         }
 
