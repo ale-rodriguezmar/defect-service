@@ -1,13 +1,19 @@
 package com.safra.defect_service.service.Impl;
 
+import com.safra.defect_service.dto.ReportDTO;
+import com.safra.defect_service.dto.ReportInfoDTO;
 import com.safra.defect_service.entity.Report;
+import com.safra.defect_service.entity.Solution;
 import com.safra.defect_service.entity.enums.ReportStatus;
 import com.safra.defect_service.repository.*;
 import com.safra.defect_service.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -43,7 +49,60 @@ public class ReportServiceImpl implements ReportService {
         report.setResponsible(areaRepository.findById(responsibleId).orElseThrow());
         report.setEvidence(null);
         report.setStatus(ReportStatus.PENDING);
+        report.setCreateDate(LocalDateTime.now(ZoneId.of("America/Bogota")));
+        return reportRepository.save(report);
+    }
 
+    @Override
+    public ReportInfoDTO reportInfo(Long reportId) {
+
+        var report = reportRepository.findById(reportId).orElseThrow();
+        ReportInfoDTO reportInfoDTO = new ReportInfoDTO();
+
+        reportInfoDTO.setReportId(reportId);
+        reportInfoDTO.setCreateDate(report.getCreateDate());
+
+        if (report.getUser() != null) {
+            reportInfoDTO.setIdUser(report.getUser().getId());
+            reportInfoDTO.setUserName(report.getUser().getUsername());
+        }
+
+        reportInfoDTO.setStatus(report.getStatus());
+
+        if (report.getArea() != null) {
+            reportInfoDTO.setAreaName(report.getArea().getName());
+        }
+
+        if (report.getItem() != null) {
+            reportInfoDTO.setItemCode(report.getItem().getItemCode());
+            reportInfoDTO.setItemName(report.getItem().getName());
+        }
+
+        if (report.getCause() != null) {
+            reportInfoDTO.setCauseName(report.getCause().getName());
+            if (report.getCause().getPossibleSolutions() != null) {
+                reportInfoDTO.setPossibleSolutions(report.getCause().getPossibleSolutions()
+                        .stream()
+                        .map(Solution::getDescription)
+                        .collect(Collectors.toList()));
+            }
+        }
+
+        if (report.getResponsible() != null) {
+            reportInfoDTO.setNameResponsible(report.getResponsible().getName());
+        }
+
+        reportInfoDTO.setComment(report.getComment());
+        reportInfoDTO.setSalesOrManufacturingOrder(report.getSalesOrManufacturingOrder());
+
+        return reportInfoDTO;
+    }
+
+    @Override
+    public Report changeStatus(Long reportId, int status) {
+        var report = reportRepository.findById(reportId).orElseThrow();
+        ReportStatus newStatus = ReportStatus.values()[status];
+        report.setStatus(newStatus);
         return reportRepository.save(report);
     }
 }
